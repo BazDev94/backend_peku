@@ -1,3 +1,4 @@
+import datetime
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
@@ -55,20 +56,46 @@ class Transaction(models.Model):
 
 class Budget(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    planned_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    allocated_amount = models.DecimalField(max_digits=10, decimal_places=2)
     spent_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    remaining_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    year = models.IntegerField(null=True, blank=True)
+    month = models.IntegerField(null=True, blank=True)
+    def update_remaining(self):
+        self.remaining_amount = self.allocated_amount - self.spent_amount
+        self.save()
 
     def __str__(self):
-        return f'{self.category} budget for {self.user}'
+        return f"{self.category}: {self.allocated_amount}"
 
 
 
 class SavingGoal(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    target_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    achieved_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    description = models.TextField(blank=True)
+    user            = models.ForeignKey(User, on_delete=models.CASCADE)
+    goal_name       = models.CharField(max_length=100)
+    target_amount   = models.DecimalField(max_digits=10, decimal_places=2)
+    current_amount  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    target_date     = models.DateTimeField()
 
     def __str__(self):
-        return f'Saving Goal of {self.target_amount} for {self.user}'
+        return f"{self.goal_name}: {self.current_amount}/{self.target_amount}"
+
+class Income(models.Model):
+    user        = models.ForeignKey(User, on_delete=models.CASCADE)
+    source      = models.CharField(max_length=100)
+    amount      = models.DecimalField(max_digits=10, decimal_places=2)
+    date        = models.DateField(auto_now=False)
+    description = models.TextField(blank=True, null=True)
+    def __str__(self):
+        return f"{self.source}: {self.amount}"
+    
+class Investment(models.Model):
+    user            = models.ForeignKey(User, on_delete=models.CASCADE)
+    investment_type = models.CharField(max_length=100)
+    initial_amount  = models.DecimalField(max_digits=10, decimal_places=2)
+    current_value   = models.DecimalField(max_digits=10, decimal_places=2)
+    purchase_date   = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.investment_type}: {self.current_value}"

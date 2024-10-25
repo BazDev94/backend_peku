@@ -10,6 +10,7 @@ router.register('transaction', views.TransactionViewSet, basename='transaction')
 router.register('category', views.CategoryViewSet, basename='category')
 router.register('budget', views.BudgetViewSet, basename='budget')
 router.register('saving_goal', views.SavingGoalViewSet, basename='saving_goal')
+router.register('income', views.IncomeViewSet, basename='income')
 
 
 urlpatterns = [
